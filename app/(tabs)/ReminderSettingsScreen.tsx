@@ -4,15 +4,15 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Notifications from 'expo-notifications';
 import React, { useEffect, useState } from 'react';
 import {
-  Button,
   Platform,
   SafeAreaView,
   StatusBar,
   StyleSheet,
   Switch,
   Text,
-  View,
+  TouchableOpacity
 } from 'react-native';
+import * as Animatable from 'react-native-animatable';
 
 export default function ReminderSettingsScreen() {
   const [reminderEnabled, setReminderEnabled] = useState(true);
@@ -36,46 +36,64 @@ export default function ReminderSettingsScreen() {
     if (reminderEnabled) {
       scheduleReminder();
     } else {
-      Notifications.cancelAllScheduledNotificationsAsync();
+      await Notifications.cancelAllScheduledNotificationsAsync();
     }
   };
 
   const scheduleReminder = async () => {
     await Notifications.cancelAllScheduledNotificationsAsync();
+
+    const now = new Date();
+    let triggerTime = new Date(reminderTime);
+    triggerTime.setFullYear(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Nếu thời gian đã trôi qua hôm nay, thì đặt cho ngày mai
+    if (triggerTime <= now) {
+      triggerTime.setDate(triggerTime.getDate() + 1);
+    }
+
     await Notifications.scheduleNotificationAsync({
       content: {
         title: '☀️ Time to get some sun!',
         body: 'Step outside to boost your Vitamin D intake.',
       },
       trigger: {
-        seconds:
-          reminderTime.getHours() * 3600 +
-          reminderTime.getMinutes() * 60 -
-          (new Date().getHours() * 3600 + new Date().getMinutes() * 60),
+        hour: reminderTime.getHours(),
+        minute: reminderTime.getMinutes(),
         repeats: true,
-      } as any, // Type assertion for trigger
+      } as Notifications.NotificationTriggerInput,
     });
   };
 
   return (
     <SafeAreaView style={styles.wrapper}>
-      <View style={styles.container}>
-        <Text style={styles.title}>🔔 Reminder Settings</Text>
+      <Animatable.View
+        style={styles.container}
+        animation="fadeInUp"
+        duration={600}
+        delay={100}
+        useNativeDriver
+      >
+        <Animatable.Text
+          animation="fadeIn"
+          delay={200}
+          style={styles.title}
+        >
+          🔔 Reminder Settings
+        </Animatable.Text>
 
-        <View style={styles.section}>
-          <Text style={styles.label}>Enable Reminder</Text>
-          <Switch
-            value={reminderEnabled}
-            onValueChange={setReminderEnabled}
-          />
-        </View>
+        <Animatable.View animation="fadeInUp" delay={300} style={[styles.section, styles.row]}>
+          <Text style={styles.label}>Enable Daily Reminder</Text>
+          <Switch value={reminderEnabled} onValueChange={setReminderEnabled} />
+        </Animatable.View>
 
-        <View style={styles.section}>
+        <Animatable.View animation="fadeInUp" delay={400} style={styles.section}>
           <Text style={styles.label}>Reminder Time</Text>
-          <Button
-            title={reminderTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            onPress={() => setShowPicker(true)}
-          />
+          <TouchableOpacity style={styles.timeButton} onPress={() => setShowPicker(true)}>
+            <Text style={styles.timeText}>
+              {reminderTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          </TouchableOpacity>
           {showPicker && (
             <DateTimePicker
               value={reminderTime}
@@ -87,10 +105,14 @@ export default function ReminderSettingsScreen() {
               }}
             />
           )}
-        </View>
+        </Animatable.View>
 
-        <Button title="Save Settings" onPress={saveSettings} />
-      </View>
+        <Animatable.View animation="zoomIn" delay={500}>
+          <TouchableOpacity style={styles.saveButton} onPress={saveSettings}>
+            <Text style={styles.saveButtonText}>💾 Save Settings</Text>
+          </TouchableOpacity>
+        </Animatable.View>
+      </Animatable.View>
     </SafeAreaView>
   );
 }
@@ -101,23 +123,56 @@ const styles = StyleSheet.create({
     backgroundColor: '#fffde7',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
+  row: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+},
   container: {
     flex: 1,
-    padding: 20,
+    padding: 24,
     justifyContent: 'flex-start',
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#f57f17',
-    marginBottom: 24,
+    marginBottom: 32,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   label: {
     fontSize: 16,
     color: '#37474f',
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  timeButton: {
+    backgroundColor: '#fff3e0',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  timeText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ef6c00',
+  },
+  saveButton: {
+    marginTop: 40,
+    backgroundColor: '#f57c00',
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  saveButtonText: {
+    color: '#fffde7',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });

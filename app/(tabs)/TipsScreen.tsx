@@ -1,18 +1,19 @@
 // TipsScreen.tsx
 import React from 'react';
 import {
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    View,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
+import * as Animatable from 'react-native-animatable';
 
 const seasonalTips = [
   {
-    season: 'Winter',
+    season: '❄️ Winter',
     tips: [
       'Aim for midday sun when it’s strongest.',
       'Eat fatty fish like salmon or mackerel.',
@@ -20,7 +21,7 @@ const seasonalTips = [
     ],
   },
   {
-    season: 'Spring',
+    season: '🌸 Spring',
     tips: [
       'Expose arms and face for at least 15 minutes daily.',
       'Include eggs and fortified milk in your diet.',
@@ -28,7 +29,7 @@ const seasonalTips = [
     ],
   },
   {
-    season: 'Rainy/Cloudy Days',
+    season: '☁️ Rainy/Cloudy Days',
     tips: [
       'Sunlight may still pass through clouds – aim for longer exposure.',
       'Stay close to windows or go outside when clouds break.',
@@ -41,14 +42,30 @@ export default function TipsScreen() {
   return (
     <SafeAreaView style={styles.wrapper}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>🌿 Tips & Suggestions</Text>
+        <Animatable.Text
+          animation="fadeInDown"
+          delay={100}
+          duration={600}
+          style={styles.title}>
+          🌿 Tips & Suggestions
+        </Animatable.Text>
+
         {seasonalTips.map((section, index) => (
-          <View key={index} style={styles.tipSection}>
+          <Animatable.View
+            key={index}
+            animation="fadeInUp"
+            delay={200 + index * 200}
+            duration={600}
+            style={styles.tipSection}
+            useNativeDriver>
             <Text style={styles.season}>{section.season}</Text>
             {section.tips.map((tip, i) => (
-              <Text key={i} style={styles.tipText}>• {tip}</Text>
+              <View key={i} style={styles.tipItem}>
+                <Text style={styles.bullet}>•</Text>
+                <Text style={styles.tipText}>{tip}</Text>
+              </View>
             ))}
-          </View>
+          </Animatable.View>
         ))}
       </ScrollView>
     </SafeAreaView>
@@ -66,16 +83,16 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#33691e',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   tipSection: {
     marginBottom: 24,
-    padding: 16,
+    padding: 18,
     backgroundColor: '#ffffff',
-    borderRadius: 12,
+    borderRadius: 14,
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -83,14 +100,25 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   season: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
     color: '#558b2f',
-    marginBottom: 10,
+    marginBottom: 12,
+  },
+  tipItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  bullet: {
+    fontSize: 18,
+    marginRight: 8,
+    color: '#7cb342',
   },
   tipText: {
+    flex: 1,
     fontSize: 16,
     color: '#33691e',
-    marginBottom: 6,
+    lineHeight: 22,
   },
 });

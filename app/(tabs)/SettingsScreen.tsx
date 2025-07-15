@@ -1,17 +1,17 @@
-// SettingsScreen.tsx
 import { Picker } from '@react-native-picker/picker';
 import React, { useState } from 'react';
 import {
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import * as Animatable from 'react-native-animatable';
 
 export default function SettingsScreen() {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -21,29 +21,26 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.wrapper}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>⚙️ App Settings</Text>
+        <Animatable.Text animation="fadeInDown" duration={500} style={styles.title}>
+          ⚙️ App Settings
+        </Animatable.Text>
 
-        {/* Temperature Unit */}
-        <View style={styles.settingItem}>
-          <Text style={styles.label}>🌡 Temperature Unit</Text>
-          <View style={styles.rowLine}>
-            <Text style={styles.unit}>Use °C</Text>
+        <Animatable.View animation="fadeInUp" delay={200} style={styles.section}>
+          <Text style={styles.sectionTitle}>🛠 Preferences</Text>
+
+          <View style={styles.settingRow}>
+            <Text style={styles.settingLabel}>🌡 Use Celsius (°C)</Text>
             <Switch value={useCelsius} onValueChange={setUseCelsius} />
           </View>
-        </View>
 
-        {/* Dark Mode */}
-        <View style={styles.settingItem}>
-          <Text style={styles.label}>🌓 Dark Mode</Text>
-          <View style={styles.rowLine}>
-            <Text style={styles.unit}>Enable</Text>
+          <View style={styles.settingRow}>
+            <Text style={styles.settingLabel}>🌓 Enable Dark Mode</Text>
             <Switch value={isDarkMode} onValueChange={setIsDarkMode} />
           </View>
-        </View>
+        </Animatable.View>
 
-        {/* Language Picker */}
-        <View style={styles.settingItem}>
-          <Text style={styles.label}>🌍 Language</Text>
+        <Animatable.View animation="fadeInUp" delay={400} style={styles.section}>
+          <Text style={styles.sectionTitle}>🌍 Language</Text>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={language}
@@ -54,17 +51,17 @@ export default function SettingsScreen() {
               <Picker.Item label="Deutsch" value="de" />
             </Picker>
           </View>
-        </View>
+        </Animatable.View>
 
-        {/* Feedback & Privacy */}
-        <View style={styles.settingItem}>
+        <Animatable.View animation="fadeInUp" delay={600} style={styles.section}>
+          <Text style={styles.sectionTitle}>📨 Others</Text>
           <TouchableOpacity>
             <Text style={styles.link}>💬 Send Feedback</Text>
           </TouchableOpacity>
           <TouchableOpacity>
             <Text style={styles.link}>🔒 Privacy Policy</Text>
           </TouchableOpacity>
-        </View>
+        </Animatable.View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -81,42 +78,57 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     marginBottom: 24,
     color: '#f57f17',
+    alignSelf: 'center',
   },
-  settingItem: {
-    marginBottom: 24,
+  section: {
+    marginBottom: 32,
+    backgroundColor: '#fff3e0',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  label: {
-    fontSize: 16,
-    color: '#37474f',
-    marginBottom: 8,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ef6c00',
+    marginBottom: 16,
   },
-  rowLine: {
+  settingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 12,
   },
-  unit: {
+  settingLabel: {
     fontSize: 16,
     color: '#37474f',
+    flex: 1,
   },
-  pickerContainer: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    overflow: 'hidden',
-  },
-  picker: {
-    height: 50,
-    width: '100%',
-  },
+ pickerContainer: {
+  borderRadius: 8,
+  borderWidth: 1,
+  borderColor: '#ccc',
+  backgroundColor: '#fffde7',
+},
+
+picker: {
+  height: 56,
+  fontSize: 16,
+  color: '#37474f',
+  lineHeight: 24,         // Đảm bảo đủ không gian dọc
+  paddingVertical: 12,    // Thêm khoảng cách trên dưới
+},
   link: {
     fontSize: 16,
     color: '#1e88e5',
     textDecorationLine: 'underline',
-    marginBottom: 10,
+    marginBottom: 12,
   },
 });
