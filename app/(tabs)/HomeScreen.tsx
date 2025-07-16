@@ -1,4 +1,5 @@
 // HomeScreen.tsx
+import { useThemeColor } from '@/hooks/useThemeColor';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
 import {
@@ -24,6 +25,16 @@ export default function HomeScreen() {
 
   const [nextReminder, setNextReminder] = useState('');
 
+  const background = useThemeColor({}, 'background');
+  const card = useThemeColor({}, 'card');
+  const text = useThemeColor({}, 'text');
+  const label = useThemeColor({}, 'placeholder');
+  const progressBg = useThemeColor({}, 'progressBackground');
+const progressFill = useThemeColor({}, 'progressFill');
+  const linkColor = useThemeColor({}, 'tint');
+  const tipBg = useThemeColor({}, 'card'); // Có thể custom riêng nếu muốn
+  const bannerColor = useThemeColor({}, 'tint');
+
   useEffect(() => {
     loadReminderTime();
   }, []);
@@ -35,7 +46,7 @@ export default function HomeScreen() {
       const now = new Date();
 
       let diffMs = time.getTime() - now.getTime();
-      if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000; // next day
+      if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000;
 
       const hours = Math.floor(diffMs / (1000 * 60 * 60));
       const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
@@ -46,105 +57,105 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.wrapper}>
+    <SafeAreaView style={[styles.wrapper, { backgroundColor: background }]}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
-
-        {/* Header with Icon */}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
         <Animatable.View animation="fadeInDown" duration={600}>
           <View style={styles.headerRow}>
             <Image source={require('../../assets/sun.png')} style={styles.icon} />
-            <Text style={styles.banner}>SUNLIGHT TRACKER</Text>
+            <Text style={[styles.banner, { color: bannerColor }]}>SUNLIGHT TRACKER</Text>
           </View>
         </Animatable.View>
 
-        {/* Today Summary */}
-<Animatable.View
-  animation="fadeInUp"
-  delay={200}
-  duration={600}
-  useNativeDriver
->
-  <View style={styles.cardShadow}>
-    <View style={styles.cardSection}>
-      <Text style={styles.cardTitle}>📍 Today’s Summary</Text>
-
-      <View style={styles.inlineRow}>
-        <Text style={styles.textLabel}>Location: </Text>
-        <Text style={styles.textValue}>{location}</Text>
-      </View>
-
-      <View style={styles.inlineRow}>
-        <Text style={styles.textLabel}>Weather: </Text>
-        <Text style={styles.textValue}>{weather}</Text>
-      </View>
-
-      <View style={styles.inlineRow}>
-        <Text style={styles.textLabel}>Optimal Sun Time: </Text>
-        <Text style={styles.textValue}>{bestTime}</Text>
-      </View>
-    </View>
-  </View>
-</Animatable.View>
-
-        {/* Sun Progress */}
-        <Animatable.View animation="fadeInUp" delay={400} duration={700}>
-          <View style={styles.cardShadow}>
+        {/* Summary Card */}
+        <Animatable.View animation="fadeInUp" delay={200} duration={600}>
+          <View style={[styles.cardShadow, { backgroundColor: card }]}>
             <View style={styles.cardSection}>
-              <Text style={styles.cardTitle}>☀️ Sunlight Progress</Text>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: `${sunProgress * 100}%` }]} />
+              <Text style={[styles.cardTitle, { color: text }]}>📍 Today’s Summary</Text>
+
+              <View style={styles.inlineRow}>
+                <Text style={[styles.textLabel, { color: label }]}>Location: </Text>
+                <Text style={[styles.textValue, { color: text }]}>{location}</Text>
               </View>
-              <Text style={styles.textValue}>Completed {sunMinutes}/30 min</Text>
+              <View style={styles.inlineRow}>
+                <Text style={[styles.textLabel, { color: label }]}>Weather: </Text>
+                <Text style={[styles.textValue, { color: text }]}>{weather}</Text>
+              </View>
+              <View style={styles.inlineRow}>
+                <Text style={[styles.textLabel, { color: label }]}>Optimal Sun Time: </Text>
+                <Text style={[styles.textValue, { color: text }]}>{bestTime}</Text>
+              </View>
             </View>
           </View>
         </Animatable.View>
 
-        {/* Reminder Section */}
-        <Animatable.View animation="fadeInUp" delay={600} duration={700}>
-          <View style={styles.cardShadow}>
+        {/* Sun Progress */}
+        <Animatable.View animation="fadeInUp" delay={400} duration={600}>
+          <View style={[styles.cardShadow, { backgroundColor: card }]}>
             <View style={styles.cardSection}>
-              <Text style={styles.cardTitle}>🔔 Upcoming Reminder</Text>
-              <Text style={styles.textValue}>Next in {nextReminder}</Text>
+              <Text style={[styles.cardTitle, { color: text }]}>☀️ Sunlight Progress</Text>
+              <View style={[styles.progressBar, { backgroundColor: progressBg }]}>
+  <View style={[styles.progressFill, { width: `${sunProgress * 100}%`, backgroundColor: progressFill }]} />
+</View>
+              <Text style={[styles.textValue, { color: text }]}>Completed {sunMinutes}/30 min</Text>
+            </View>
+          </View>
+        </Animatable.View>
+
+        {/* Reminder */}
+        <Animatable.View animation="fadeInUp" delay={600} duration={600}>
+          <View style={[styles.cardShadow, { backgroundColor: card }]}>
+            <View style={styles.cardSection}>
+              <Text style={[styles.cardTitle, { color: text }]}>🔔 Upcoming Reminder</Text>
+              <Text style={[styles.textValue, { color: text }]}>Next in {nextReminder}</Text>
               <TouchableOpacity>
-                <Text style={styles.link}>Change Reminder Settings</Text>
+                <Text style={[styles.link, { color: linkColor }]}>Change Reminder Settings</Text>
               </TouchableOpacity>
             </View>
           </View>
         </Animatable.View>
-        {/* Tips Section */}
-        <Animatable.View animation="fadeInUp" delay={800} duration={700}>
-          <View style={styles.tipCard}>
-            <Text style={styles.cardTitle}>🥗 Health Tip</Text>
-            <Text style={styles.tip}>{tip}</Text>
+
+        {/* Tips */}
+        <Animatable.View animation="fadeInUp" delay={800} duration={600}>
+          <View style={[styles.tipCard, { backgroundColor: tipBg }]}>
+            <Text style={[styles.cardTitle, { color: text }]}>🥗 Health Tip</Text>
+            <Text style={[styles.tip, { color: label }]}>{tip}</Text>
           </View>
         </Animatable.View>
-        {/* Footer Links */}
+
+        {/* Footer */}
         <View style={styles.footer}>
           <TouchableOpacity>
-            <Text style={styles.link}>📊 View Weekly Report</Text>
+            <Text style={[styles.link, { color: linkColor }]}>📊 View Weekly Report</Text>
           </TouchableOpacity>
           <TouchableOpacity>
-            <Text style={styles.link}>⚙️ App Settings</Text>
+            <Text style={[styles.link, { color: linkColor }]}>⚙️ App Settings</Text>
           </TouchableOpacity>
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
+  progressBar: {
+  height: 16,
+  borderRadius: 12,
+  overflow: 'hidden',
+  marginBottom: 10,
+},
+
+progressFill: {
+  height: '100%',
+},
   wrapper: {
     flex: 1,
-    backgroundColor: '#fefcea',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   scrollContent: {
     padding: 20,
     paddingBottom: 60,
@@ -163,40 +174,24 @@ const styles = StyleSheet.create({
   banner: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#f57f17',
     textTransform: 'uppercase',
   },
   inlineRow: {
-  flexDirection: 'row',
-  alignItems: 'baseline',
-  marginBottom: 8,
-},
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 8,
+  },
   cardShadow: {
-    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 2,
     marginBottom: 20,
     shadowColor: '#000',
-    shadowOpacity: 0.05, // mềm hơn
+    shadowOpacity: 0.05,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 4,
   },
-  infoRow: {
-  marginBottom: 10,
-},textLabel: {
-  fontSize: 16,
-  color: '#607d8b',
-  fontWeight: '500',
-},
-textValue: {
-  fontSize: 16,
-  color: '#263238',
-  fontWeight: '600',
-},
-
   cardSection: {
-    backgroundColor: '#ffffff',
     borderRadius: 14,
     padding: 16,
   },
@@ -204,40 +199,30 @@ textValue: {
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 12,
-    color: '#37474f',
   },
-
-  progressBar: {
-    height: 16,
-    backgroundColor: '#eeeeee',
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 10,
+  textLabel: {
+    fontSize: 16,
+    fontWeight: '500',
   },
-
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#81c784', // xanh lá cây sáng, dễ nhìn hơn
+  textValue: {
+    fontSize: 16,
+    fontWeight: '600',
   },
-
   link: {
-    color: '#0288d1',
     marginTop: 10,
     fontSize: 16,
     fontWeight: '600',
   },
   tipCard: {
-    backgroundColor: '#f1f8e9',
     borderRadius: 16,
     padding: 18,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#c5e1a5',
+    borderColor: 'transparent',
   },
   tip: {
     fontSize: 16,
     fontStyle: 'italic',
-    color: '#33691e',
     lineHeight: 22,
   },
   footer: {

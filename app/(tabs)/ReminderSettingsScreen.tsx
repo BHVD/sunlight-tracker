@@ -1,4 +1,3 @@
-// ReminderSettingsScreen.tsx
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Notifications from 'expo-notifications';
@@ -14,10 +13,20 @@ import {
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 
+import { useThemeColor } from '@/hooks/useThemeColor';
+
 export default function ReminderSettingsScreen() {
   const [reminderEnabled, setReminderEnabled] = useState(true);
   const [reminderTime, setReminderTime] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
+
+  const background = useThemeColor({}, 'background');
+  const card = useThemeColor({}, 'card');
+  const text = useThemeColor({}, 'text');
+  const tint = useThemeColor({}, 'tint');
+  const highlight = useThemeColor({ light: '#fff3e0', dark: '#333' }, 'card');
+  const accent = useThemeColor({ light: '#f57c00', dark: '#ff9800' }, 'tint');
+  const saveTextColor = useThemeColor({ light: '#fffde7', dark: '#000' }, 'background');
 
   useEffect(() => {
     loadSettings();
@@ -47,7 +56,6 @@ export default function ReminderSettingsScreen() {
     let triggerTime = new Date(reminderTime);
     triggerTime.setFullYear(now.getFullYear(), now.getMonth(), now.getDate());
 
-    // Nếu thời gian đã trôi qua hôm nay, thì đặt cho ngày mai
     if (triggerTime <= now) {
       triggerTime.setDate(triggerTime.getDate() + 1);
     }
@@ -66,7 +74,7 @@ export default function ReminderSettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.wrapper}>
+    <SafeAreaView style={[styles.wrapper, { backgroundColor: background }]}>
       <Animatable.View
         style={styles.container}
         animation="fadeInUp"
@@ -74,23 +82,19 @@ export default function ReminderSettingsScreen() {
         delay={100}
         useNativeDriver
       >
-        <Animatable.Text
-          animation="fadeIn"
-          delay={200}
-          style={styles.title}
-        >
+        <Animatable.Text animation="fadeIn" delay={200} style={[styles.title, { color: tint }]}>
           🔔 Reminder Settings
         </Animatable.Text>
 
         <Animatable.View animation="fadeInUp" delay={300} style={[styles.section, styles.row]}>
-          <Text style={styles.label}>Enable Daily Reminder</Text>
+          <Text style={[styles.label, { color: text }]}>Enable Daily Reminder</Text>
           <Switch value={reminderEnabled} onValueChange={setReminderEnabled} />
         </Animatable.View>
 
         <Animatable.View animation="fadeInUp" delay={400} style={styles.section}>
-          <Text style={styles.label}>Reminder Time</Text>
-          <TouchableOpacity style={styles.timeButton} onPress={() => setShowPicker(true)}>
-            <Text style={styles.timeText}>
+          <Text style={[styles.label, { color: text }]}>Reminder Time</Text>
+          <TouchableOpacity style={[styles.timeButton, { backgroundColor: highlight }]} onPress={() => setShowPicker(true)}>
+            <Text style={[styles.timeText, { color: accent }]}>
               {reminderTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
           </TouchableOpacity>
@@ -108,8 +112,11 @@ export default function ReminderSettingsScreen() {
         </Animatable.View>
 
         <Animatable.View animation="zoomIn" delay={500}>
-          <TouchableOpacity style={styles.saveButton} onPress={saveSettings}>
-            <Text style={styles.saveButtonText}>💾 Save Settings</Text>
+          <TouchableOpacity
+            style={[styles.saveButton, { backgroundColor: accent }]}
+            onPress={saveSettings}
+          >
+            <Text style={[styles.saveButtonText, { color: saveTextColor }]}>💾 Save Settings</Text>
           </TouchableOpacity>
         </Animatable.View>
       </Animatable.View>
@@ -120,14 +127,8 @@ export default function ReminderSettingsScreen() {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: '#fffde7',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  row: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-},
   container: {
     flex: 1,
     padding: 24,
@@ -136,19 +137,21 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#f57f17',
     marginBottom: 32,
   },
   section: {
     marginBottom: 32,
   },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   label: {
     fontSize: 16,
-    color: '#37474f',
     marginBottom: 12,
   },
   timeButton: {
-    backgroundColor: '#fff3e0',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,
@@ -157,11 +160,9 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#ef6c00',
   },
   saveButton: {
     marginTop: 40,
-    backgroundColor: '#f57c00',
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: 'center',
@@ -171,7 +172,6 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   saveButtonText: {
-    color: '#fffde7',
     fontSize: 18,
     fontWeight: 'bold',
   },

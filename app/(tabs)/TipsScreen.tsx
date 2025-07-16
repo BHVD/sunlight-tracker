@@ -1,4 +1,4 @@
-// TipsScreen.tsx
+import { useThemeColor } from '@/hooks/useThemeColor';
 import React from 'react';
 import {
   Platform,
@@ -39,14 +39,20 @@ const seasonalTips = [
 ];
 
 export default function TipsScreen() {
+  const background = useThemeColor({}, 'background');
+  const text = useThemeColor({}, 'text');
+  const card = useThemeColor({}, 'card');
+  const primary = useThemeColor({}, 'tint');
+  const accent = useThemeColor({ light: '#7cb342', dark: '#aed581' }, 'accent');
+
   return (
-    <SafeAreaView style={styles.wrapper}>
+    <SafeAreaView style={[styles.wrapper, { backgroundColor: background }]}>
       <ScrollView contentContainerStyle={styles.container}>
         <Animatable.Text
           animation="fadeInDown"
           delay={100}
           duration={600}
-          style={styles.title}>
+          style={[styles.title, { color: primary }]}>
           🌿 Tips & Suggestions
         </Animatable.Text>
 
@@ -56,13 +62,13 @@ export default function TipsScreen() {
             animation="fadeInUp"
             delay={200 + index * 200}
             duration={600}
-            style={styles.tipSection}
+            style={[styles.tipSection, { backgroundColor: card }]}
             useNativeDriver>
-            <Text style={styles.season}>{section.season}</Text>
+            <Text style={[styles.season, { color: primary }]}>{section.season}</Text>
             {section.tips.map((tip, i) => (
               <View key={i} style={styles.tipItem}>
-                <Text style={styles.bullet}>•</Text>
-                <Text style={styles.tipText}>{tip}</Text>
+                <Text style={[styles.bullet, { color: accent }]}>•</Text>
+                <Text style={[styles.tipText, { color: text }]}>{tip}</Text>
               </View>
             ))}
           </Animatable.View>
@@ -75,7 +81,6 @@ export default function TipsScreen() {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: '#f1f8e9',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   container: {
@@ -85,13 +90,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#33691e',
     marginBottom: 24,
   },
   tipSection: {
     marginBottom: 24,
     padding: 18,
-    backgroundColor: '#ffffff',
     borderRadius: 14,
     shadowColor: '#000',
     shadowOpacity: 0.05,
@@ -102,7 +105,6 @@ const styles = StyleSheet.create({
   season: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#558b2f',
     marginBottom: 12,
   },
   tipItem: {
@@ -113,12 +115,10 @@ const styles = StyleSheet.create({
   bullet: {
     fontSize: 18,
     marginRight: 8,
-    color: '#7cb342',
   },
   tipText: {
     flex: 1,
     fontSize: 16,
-    color: '#33691e',
     lineHeight: 22,
   },
 });

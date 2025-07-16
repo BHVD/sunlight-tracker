@@ -1,6 +1,7 @@
-import { Picker } from '@react-native-picker/picker';
-import React, { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState } from 'react';
 import {
+  Appearance,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -13,53 +14,120 @@ import {
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 
+import LanguageSelector from '@/components/LanguageSelector';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useThemeColor } from '@/hooks/useThemeColor';
+
 export default function SettingsScreen() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const {
+    isDark,
+    followSystem,
+    setFollowSystem,
+    setDarkMode,
+  } = useTheme();
+  
   const [useCelsius, setUseCelsius] = useState(true);
   const [language, setLanguage] = useState('en');
 
+  const background = useThemeColor({}, 'background');
+  const text = useThemeColor({}, 'text');
+  const card = useThemeColor({}, 'card');
+  const primary = useThemeColor({}, 'tint');
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  useEffect(() => {
+    saveSettings();
+  }, [isDark, followSystem, useCelsius, language]);
+
+  const loadSettings = async () => {
+    const systemPref = await AsyncStorage.getItem('followSystem');
+    const dark = await AsyncStorage.getItem('darkMode');
+    const celsius = await AsyncStorage.getItem('useCelsius');
+    const lang = await AsyncStorage.getItem('language');
+
+    const systemTheme = Appearance.getColorScheme();
+
+    const followSystemPref = systemPref !== 'false';
+    setFollowSystem(followSystemPref);
+
+    if (followSystemPref) {
+      setDarkMode(systemTheme === 'dark');
+    } else {
+      setDarkMode(dark === 'true');
+    }
+
+    if (celsius !== null) setUseCelsius(celsius === 'true');
+    if (lang) setLanguage(lang);
+  };
+
+  const saveSettings = async () => {
+    await AsyncStorage.setItem('followSystem', followSystem.toString());
+    await AsyncStorage.setItem('darkMode', isDark.toString());
+    await AsyncStorage.setItem('useCelsius', useCelsius.toString());
+    await AsyncStorage.setItem('language', language);
+  };
+
   return (
-    <SafeAreaView style={styles.wrapper}>
+    <SafeAreaView style={[styles.wrapper, { backgroundColor: background }]}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Animatable.Text animation="fadeInDown" duration={500} style={styles.title}>
+        <Animatable.Text animation="fadeInDown" duration={500} style={[styles.title, { color: primary }]}>
           ⚙️ App Settings
         </Animatable.Text>
 
-        <Animatable.View animation="fadeInUp" delay={200} style={styles.section}>
-          <Text style={styles.sectionTitle}>🛠 Preferences</Text>
+        {/* Preferences */}
+        <Animatable.View animation="fadeInUp" delay={200} style={[styles.section, { backgroundColor: card }]}>
+          <Text style={[styles.sectionTitle, { color: primary }]}>🛠 Preferences</Text>
 
           <View style={styles.settingRow}>
-            <Text style={styles.settingLabel}>🌡 Use Celsius (°C)</Text>
+            <Text style={[styles.settingLabel, { color: text }]}>🌡 Use Celsius (°C)</Text>
             <Switch value={useCelsius} onValueChange={setUseCelsius} />
           </View>
 
           <View style={styles.settingRow}>
-            <Text style={styles.settingLabel}>🌓 Enable Dark Mode</Text>
-            <Switch value={isDarkMode} onValueChange={setIsDarkMode} />
+            <Text style={[styles.settingLabel, { color: text }]}>🌗 Use System Theme</Text>
+            <Switch
+              value={followSystem}
+              onValueChange={(value) => {
+                setFollowSystem(value);
+                if (value) {
+                  const systemTheme = Appearance.getColorScheme();
+                  setDarkMode(systemTheme === 'dark');
+                }
+              }}
+            />
           </View>
+
+          {!followSystem && (
+            <View style={styles.settingRow}>
+              <Text style={[styles.settingLabel, { color: text }]}>🌓 Enable Dark Mode</Text>
+              <Switch
+                value={isDark}
+                onValueChange={(value) => {
+                  setFollowSystem(false); // 👈 Rất quan trọng
+                  setDarkMode(value);
+                }}
+              />
+            </View>
+          )}
         </Animatable.View>
 
-        <Animatable.View animation="fadeInUp" delay={400} style={styles.section}>
-          <Text style={styles.sectionTitle}>🌍 Language</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={language}
-              style={styles.picker}
-              onValueChange={(itemValue) => setLanguage(itemValue)}>
-              <Picker.Item label="English" value="en" />
-              <Picker.Item label="Norsk" value="no" />
-              <Picker.Item label="Deutsch" value="de" />
-            </Picker>
-          </View>
+        {/* Language */}
+        <Animatable.View animation="fadeInUp" delay={400} style={[styles.section, { backgroundColor: card }]}>
+          <Text style={[styles.sectionTitle, { color: primary }]}>🌍 Language</Text>
+          <LanguageSelector language={language} onSelect={setLanguage} />
         </Animatable.View>
 
-        <Animatable.View animation="fadeInUp" delay={600} style={styles.section}>
-          <Text style={styles.sectionTitle}>📨 Others</Text>
+        {/* Others */}
+        <Animatable.View animation="fadeInUp" delay={600} style={[styles.section, { backgroundColor: card }]}>
+          <Text style={[styles.sectionTitle, { color: primary }]}>📨 Others</Text>
           <TouchableOpacity>
-            <Text style={styles.link}>💬 Send Feedback</Text>
+            <Text style={[styles.link, { color: primary }]}>💬 Send Feedback</Text>
           </TouchableOpacity>
           <TouchableOpacity>
-            <Text style={styles.link}>🔒 Privacy Policy</Text>
+            <Text style={[styles.link, { color: primary }]}>🔒 Privacy Policy</Text>
           </TouchableOpacity>
         </Animatable.View>
       </ScrollView>
@@ -70,7 +138,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: '#fff8e1',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   container: {
@@ -81,12 +148,10 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: 'bold',
     marginBottom: 24,
-    color: '#f57f17',
     alignSelf: 'center',
   },
   section: {
     marginBottom: 32,
-    backgroundColor: '#fff3e0',
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
@@ -97,7 +162,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#ef6c00',
     marginBottom: 16,
   },
   settingRow: {
@@ -108,26 +172,10 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 16,
-    color: '#37474f',
     flex: 1,
   },
- pickerContainer: {
-  borderRadius: 8,
-  borderWidth: 1,
-  borderColor: '#ccc',
-  backgroundColor: '#fffde7',
-},
-
-picker: {
-  height: 56,
-  fontSize: 16,
-  color: '#37474f',
-  lineHeight: 24,         // Đảm bảo đủ không gian dọc
-  paddingVertical: 12,    // Thêm khoảng cách trên dưới
-},
   link: {
     fontSize: 16,
-    color: '#1e88e5',
     textDecorationLine: 'underline',
     marginBottom: 12,
   },
