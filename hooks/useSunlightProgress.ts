@@ -13,7 +13,7 @@ export function useSunlightProgress(extraMinutes: number = 0) {
     });
   }, [extraMinutes]);
 
-  const sunProgress = Math.min((sunMinutes + extraMinutes) / 4, 1);
+  const sunProgress = Math.min((sunMinutes + extraMinutes) / 30, 1);
 
   return {
     sunProgress,

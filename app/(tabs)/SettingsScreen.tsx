@@ -1,5 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   Appearance,
   Platform,
@@ -14,61 +13,26 @@ import {
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 
-import LanguageSelector from '@/components/LanguageSelector';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useAppSettings } from '@/contexts/AppSettingsContext';
 import { useThemeColor } from '@/hooks/useThemeColor';
 
 export default function SettingsScreen() {
   const {
     isDark,
     followSystem,
-    setFollowSystem,
+    temperatureUnit,
+    language,
+    setTemperatureUnit,
+    setLanguage,
     setDarkMode,
-  } = useTheme();
-  
-  const [useCelsius, setUseCelsius] = useState(true);
-  const [language, setLanguage] = useState('en');
+    setFollowSystem,
+  } = useAppSettings();
 
   const background = useThemeColor({}, 'background');
   const text = useThemeColor({}, 'text');
   const card = useThemeColor({}, 'card');
   const primary = useThemeColor({}, 'tint');
-
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  useEffect(() => {
-    saveSettings();
-  }, [isDark, followSystem, useCelsius, language]);
-
-  const loadSettings = async () => {
-    const systemPref = await AsyncStorage.getItem('followSystem');
-    const dark = await AsyncStorage.getItem('darkMode');
-    const celsius = await AsyncStorage.getItem('useCelsius');
-    const lang = await AsyncStorage.getItem('language');
-
-    const systemTheme = Appearance.getColorScheme();
-
-    const followSystemPref = systemPref !== 'false';
-    setFollowSystem(followSystemPref);
-
-    if (followSystemPref) {
-      setDarkMode(systemTheme === 'dark');
-    } else {
-      setDarkMode(dark === 'true');
-    }
-
-    if (celsius !== null) setUseCelsius(celsius === 'true');
-    if (lang) setLanguage(lang);
-  };
-
-  const saveSettings = async () => {
-    await AsyncStorage.setItem('followSystem', followSystem.toString());
-    await AsyncStorage.setItem('darkMode', isDark.toString());
-    await AsyncStorage.setItem('useCelsius', useCelsius.toString());
-    await AsyncStorage.setItem('language', language);
-  };
+  const languageButton = useThemeColor({}, 'languageButton');
 
   return (
     <SafeAreaView style={[styles.wrapper, { backgroundColor: background }]}>
@@ -81,11 +45,20 @@ export default function SettingsScreen() {
         <Animatable.View animation="fadeInUp" delay={200} style={[styles.section, { backgroundColor: card }]}>
           <Text style={[styles.sectionTitle, { color: primary }]}>🛠 Preferences</Text>
 
+          {/* Temperature Unit */}
           <View style={styles.settingRow}>
-            <Text style={[styles.settingLabel, { color: text }]}>🌡 Use Celsius (°C)</Text>
-            <Switch value={useCelsius} onValueChange={setUseCelsius} />
+            <Text style={[styles.settingLabel, { color: text }]}>
+              🌡 Temperature Unit: {temperatureUnit === 'celsius' ? 'Celsius (°C)' : 'Fahrenheit (°F)'}
+            </Text>
+            <Switch
+              value={temperatureUnit === 'celsius'}
+              onValueChange={(isCelsius) =>
+                setTemperatureUnit(isCelsius ? 'celsius' : 'fahrenheit')
+              }
+            />
           </View>
 
+          {/* Follow System Theme */}
           <View style={styles.settingRow}>
             <Text style={[styles.settingLabel, { color: text }]}>🌗 Use System Theme</Text>
             <Switch
@@ -100,13 +73,14 @@ export default function SettingsScreen() {
             />
           </View>
 
+          {/* Manual Dark Mode */}
           {!followSystem && (
             <View style={styles.settingRow}>
               <Text style={[styles.settingLabel, { color: text }]}>🌓 Enable Dark Mode</Text>
               <Switch
                 value={isDark}
                 onValueChange={(value) => {
-                  setFollowSystem(false); // 👈 Rất quan trọng
+                  setFollowSystem(false);
                   setDarkMode(value);
                 }}
               />
@@ -117,7 +91,17 @@ export default function SettingsScreen() {
         {/* Language */}
         <Animatable.View animation="fadeInUp" delay={400} style={[styles.section, { backgroundColor: card }]}>
           <Text style={[styles.sectionTitle, { color: primary }]}>🌍 Language</Text>
-          <LanguageSelector language={language} onSelect={setLanguage} />
+          <View style={styles.settingRow}>
+            <Text style={[styles.settingLabel, { color: text }]}>🗣 Current Language</Text>
+            <TouchableOpacity
+              onPress={() => setLanguage(language === 'en' ? 'vi' : 'en')}
+              style={[styles.languageButton,{ backgroundColor: languageButton }]}
+            >
+              <Text style={[styles.languageText, { color: primary }]}>
+                {language === 'en' ? '🇺🇸 English' : '🇻🇳 Tiếng Việt'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </Animatable.View>
 
         {/* Others */}
@@ -173,6 +157,15 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: 16,
     flex: 1,
+  },
+  languageButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  languageText: {
+    fontSize: 15,
+    fontWeight: '500',
   },
   link: {
     fontSize: 16,

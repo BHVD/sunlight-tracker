@@ -1,11 +1,10 @@
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import { AppSettingsProvider } from '@/contexts/AppSettingsContext';
 import { Slot } from 'expo-router';
-import 'react-native-reanimated';
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
+    <AppSettingsProvider>
       <Slot />
-    </ThemeProvider>
+    </AppSettingsProvider>
   );
 }

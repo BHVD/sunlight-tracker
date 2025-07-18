@@ -4,6 +4,7 @@ const tintColorDark = '#f0f0f0';
 export default {
   light: {
     tabBarBackground: '#fffde7',
+    blurTint: '#ffffff',
     tabIconActive: '#f57f17',
     tabIconInactive: '#9e9e9e',
     border: '#eeeeee',
@@ -18,9 +19,12 @@ export default {
     progressFill: '#81c784',
     separator: '#eceff1',
     accent: '#7cb342',
+
+        languageButton: '#ffffff',
   },
   dark: {
     tabBarBackground: '#121212',
+    blurTint: '#1e1e1e',
     tabIconActive: '#ffd600',
     tabIconInactive: '#90a4ae',
     border: '#37474f',
@@ -35,5 +39,7 @@ export default {
     progressFill: '#aed581',
     separator: '#444',
     accent: '#aed581',
+
+       languageButton: '#2c2c2e',
   },
 };

@@ -1,11 +1,10 @@
 import Colors from '@/constants/Colors';
-import { useTheme } from '@/contexts/ThemeContext';
-
+import { useAppSettings } from '@/contexts/AppSettingsContext';
 export function useThemeColor(
   props: { light?: string; dark?: string },
   colorName: keyof typeof Colors.light
 ) {
-  const { isDark } = useTheme();
+  const { isDark } = useAppSettings();
   const theme = isDark ? 'dark' : 'light';
   return props[theme] ?? Colors[theme][colorName];
 }
