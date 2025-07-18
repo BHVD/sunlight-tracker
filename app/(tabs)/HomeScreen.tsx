@@ -1,7 +1,10 @@
 // HomeScreen.tsx
+import { useSunlightProgress } from '@/hooks/useSunlightProgress';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { useTodaySummary } from '@/hooks/useTodaySummary';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Image,
   Platform,
@@ -16,28 +19,43 @@ import {
 import * as Animatable from 'react-native-animatable';
 
 export default function HomeScreen() {
-  const location = 'Oslo, Norway';
-  const weather = 'Clear sky | 4°C';
-  const bestTime = '11:30 – 13:00';
-  const sunProgress = 0.6;
-  const tip = 'Eat more salmon – rich in vitamin D';
-  const sunMinutes = Math.round(sunProgress * 30);
-
+  
+  const { location, weather, bestTime, error } = useTodaySummary();
   const [nextReminder, setNextReminder] = useState('');
-
+  const [seconds, setSeconds] = useState(0);
+  const [savedMinutes, setSavedMinutes] = useState(0);
+  const [running, setRunning] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { sunProgress, sunMinutes, tip } = useSunlightProgress(Math.floor(seconds / 60));
+  
+  
   const background = useThemeColor({}, 'background');
   const card = useThemeColor({}, 'card');
   const text = useThemeColor({}, 'text');
   const label = useThemeColor({}, 'placeholder');
   const progressBg = useThemeColor({}, 'progressBackground');
-const progressFill = useThemeColor({}, 'progressFill');
-  const linkColor = useThemeColor({}, 'tint');
-  const tipBg = useThemeColor({}, 'card'); // Có thể custom riêng nếu muốn
+  const progressFill = useThemeColor({}, 'progressFill');
+  const linkColor = useThemeColor({ dark: "#05ca40ff", light: "#1498b9ff" }, 'tint');
+  const tipBg = useThemeColor({}, 'card');
   const bannerColor = useThemeColor({}, 'tint');
 
-  useEffect(() => {
+    useEffect(() => {
     loadReminderTime();
+    loadSavedProgress();
   }, []);
+
+  useEffect(() => {
+    if (running) {
+      intervalRef.current = setInterval(() => {
+        setSeconds((prev) => prev + 1);
+      }, 1000);
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [running]);
 
   const loadReminderTime = async () => {
     const timeStr = await AsyncStorage.getItem('reminderTime');
@@ -56,13 +74,34 @@ const progressFill = useThemeColor({}, 'progressFill');
     }
   };
 
+  const loadSavedProgress = async () => {
+    const saved = await AsyncStorage.getItem('sunlightToday');
+    if (saved) setSavedMinutes(parseInt(saved));
+  };
+
+  const handleSave = async () => {
+    const minutes = Math.round(seconds / 60);
+    const total = savedMinutes + minutes;
+    await AsyncStorage.setItem('sunlightToday', total.toString());
+    setSavedMinutes(total);
+    setSeconds(0);
+    setRunning(false);
+    alert(`Saved ${minutes} more minutes! Total today: ${total} minutes`);
+  };
+
+  const formatTime = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
   return (
     <SafeAreaView style={[styles.wrapper, { backgroundColor: background }]}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+        showsVerticalScrollIndicator={false}>
+
         {/* Header */}
         <Animatable.View animation="fadeInDown" duration={600}>
           <View style={styles.headerRow}>
@@ -76,7 +115,7 @@ const progressFill = useThemeColor({}, 'progressFill');
           <View style={[styles.cardShadow, { backgroundColor: card }]}>
             <View style={styles.cardSection}>
               <Text style={[styles.cardTitle, { color: text }]}>📍 Today’s Summary</Text>
-
+              {error && <Text style={{ color: 'red' }}>{error}</Text>}
               <View style={styles.inlineRow}>
                 <Text style={[styles.textLabel, { color: label }]}>Location: </Text>
                 <Text style={[styles.textValue, { color: text }]}>{location}</Text>
@@ -93,15 +132,49 @@ const progressFill = useThemeColor({}, 'progressFill');
           </View>
         </Animatable.View>
 
-        {/* Sun Progress */}
+        {/* Sunlight Timer */}
         <Animatable.View animation="fadeInUp" delay={400} duration={600}>
           <View style={[styles.cardShadow, { backgroundColor: card }]}>
             <View style={styles.cardSection}>
-              <Text style={[styles.cardTitle, { color: text }]}>☀️ Sunlight Progress</Text>
+              <Text style={[styles.cardTitle, { color: text }]}>☀️ Sunlight Timer</Text>
+              <Text style={[styles.timerText, { color: text }]}>{formatTime(seconds)}</Text>
               <View style={[styles.progressBar, { backgroundColor: progressBg }]}>
-  <View style={[styles.progressFill, { width: `${sunProgress * 100}%`, backgroundColor: progressFill }]} />
-</View>
-              <Text style={[styles.textValue, { color: text }]}>Completed {sunMinutes}/30 min</Text>
+                <View
+                  style={[
+                    styles.progressFill,
+                    {
+                      width: `${sunProgress * 100}%`,
+                      backgroundColor: progressFill,
+                    },
+                  ]}
+                />
+              </View>
+              <Text style={[styles.textValue, { color: text }]}>
+                Completed {sunMinutes}/30 min
+              </Text>
+              <View style={styles.buttonRow}>
+                <TouchableOpacity
+                  style={[styles.timerButton, { backgroundColor: running ? '#ef5350' : linkColor }]}
+                  onPress={() => setRunning(!running)}>
+                  <Ionicons name={running ? 'pause' : 'play'} size={20} color="#fff" />
+                  <Text style={styles.buttonText}>{running ? 'Pause' : 'Start'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.timerButton, { backgroundColor: '#dfab1dff' }]}
+                  onPress={() => {
+                    setSeconds(0);
+                    setRunning(false);
+                  }}>
+                  <Ionicons name="refresh" size={20} color="#fff" />
+                  <Text style={styles.buttonText}>Reset</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.timerButton, { backgroundColor: linkColor }]}
+                  onPress={handleSave}>
+                  <Ionicons name="save" size={20} color="#fff" />
+                  <Text style={styles.buttonText}>Save</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </Animatable.View>
@@ -126,31 +199,45 @@ const progressFill = useThemeColor({}, 'progressFill');
             <Text style={[styles.tip, { color: label }]}>{tip}</Text>
           </View>
         </Animatable.View>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <TouchableOpacity>
-            <Text style={[styles.link, { color: linkColor }]}>📊 View Weekly Report</Text>
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Text style={[styles.link, { color: linkColor }]}>⚙️ App Settings</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-const styles = StyleSheet.create({
-  progressBar: {
-  height: 16,
-  borderRadius: 12,
-  overflow: 'hidden',
-  marginBottom: 10,
-},
 
-progressFill: {
-  height: '100%',
-},
+const styles = StyleSheet.create({
+  timerText: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  timerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  progressBar: {
+    height: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  progressFill: {
+    height: '100%',
+  },
   wrapper: {
     flex: 1,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,

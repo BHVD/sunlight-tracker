@@ -1,12 +1,12 @@
 const tintColorLight = '#2f95dc';
-const tintColorDark = '#fff';
+const tintColorDark = '#f0f0f0';
 
 export default {
   light: {
-     tabBarBackground: '#fffde7',
-  tabIconActive: '#f57f17',
-  tabIconInactive: '#9e9e9e',
-  border: '#eeeeee',
+    tabBarBackground: '#fffde7',
+    tabIconActive: '#f57f17',
+    tabIconInactive: '#9e9e9e',
+    border: '#eeeeee',
     text: '#1c1c1c',
     background: '#ffffff',
     card: '#f5f5f5',
@@ -14,7 +14,6 @@ export default {
     placeholder: '#a0a0a0',
     overlay: 'rgba(0,0,0,0.3)',
 
-    
     progressBackground: '#eeeeee',
     progressFill: '#81c784',
     separator: '#eceff1',
@@ -22,9 +21,9 @@ export default {
   },
   dark: {
     tabBarBackground: '#121212',
-  tabIconActive: '#ffd600',
-  tabIconInactive: '#90a4ae',
-  border: '#37474f',
+    tabIconActive: '#ffd600',
+    tabIconInactive: '#90a4ae',
+    border: '#37474f',
     text: '#ffffff',
     background: '#121212',
     card: '#1e1e1e',
@@ -34,7 +33,7 @@ export default {
 
     progressBackground: '#333333',
     progressFill: '#aed581',
-     separator: '#444',
-     accent: '#aed581',
+    separator: '#444',
+    accent: '#aed581',
   },
 };
