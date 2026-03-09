@@ -4,6 +4,7 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { useTodaySummary } from '@/hooks/useTodaySummary';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Image,
@@ -19,7 +20,7 @@ import {
 import * as Animatable from 'react-native-animatable';
 
 export default function HomeScreen() {
-  
+  const router = useRouter();
   const { location, weather, bestTime, error } = useTodaySummary();
   const [nextReminder, setNextReminder] = useState('');
   const [seconds, setSeconds] = useState(0);
@@ -75,14 +76,32 @@ export default function HomeScreen() {
   };
 
   const loadSavedProgress = async () => {
+    const todayKey = new Date().toISOString().split('T')[0];
+    const savedByDate = await AsyncStorage.getItem('sunlightByDate');
+
+    if (savedByDate) {
+      const parsed = JSON.parse(savedByDate) as Record<string, number>;
+      const todayMinutes = parsed[todayKey] || 0;
+      setSavedMinutes(todayMinutes);
+      return;
+    }
+
     const saved = await AsyncStorage.getItem('sunlightToday');
-    if (saved) setSavedMinutes(parseInt(saved));
+    if (saved) setSavedMinutes(parseInt(saved, 10));
   };
 
   const handleSave = async () => {
     const minutes = Math.round(seconds / 60);
     const total = savedMinutes + minutes;
+    const todayKey = new Date().toISOString().split('T')[0];
+
+    const savedByDate = await AsyncStorage.getItem('sunlightByDate');
+    const parsed = savedByDate ? (JSON.parse(savedByDate) as Record<string, number>) : {};
+    parsed[todayKey] = total;
+
+    await AsyncStorage.setItem('sunlightByDate', JSON.stringify(parsed));
     await AsyncStorage.setItem('sunlightToday', total.toString());
+
     setSavedMinutes(total);
     setSeconds(0);
     setRunning(false);
@@ -185,7 +204,7 @@ export default function HomeScreen() {
             <View style={styles.cardSection}>
               <Text style={[styles.cardTitle, { color: text }]}>🔔 Upcoming Reminder</Text>
               <Text style={[styles.textValue, { color: text }]}>Next in {nextReminder}</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/ReminderSettingsScreen')}>
                 <Text style={[styles.link, { color: linkColor }]}>Change Reminder Settings</Text>
               </TouchableOpacity>
             </View>
