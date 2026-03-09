@@ -7,10 +7,22 @@ export function useSunlightProgress(extraMinutes: number = 0) {
   const tip = 'Eat more salmon – rich in vitamin D';
 
   useEffect(() => {
-    AsyncStorage.getItem('sunlightToday').then((data) => {
+    const loadProgress = async () => {
+      const todayKey = new Date().toISOString().split('T')[0];
+      const savedByDate = await AsyncStorage.getItem('sunlightByDate');
+
+      if (savedByDate) {
+        const parsed = JSON.parse(savedByDate) as Record<string, number>;
+        setSunMinutes(parsed[todayKey] || 0);
+        return;
+      }
+
+      const data = await AsyncStorage.getItem('sunlightToday');
       const stored = parseInt(data || '0', 10);
-      setSunMinutes(stored + extraMinutes);
-    });
+      setSunMinutes(stored);
+    };
+
+    loadProgress();
   }, [extraMinutes]);
 
   const sunProgress = Math.min((sunMinutes + extraMinutes) / 30, 1);
@@ -21,4 +33,3 @@ export function useSunlightProgress(extraMinutes: number = 0) {
     tip,
   };
 }
-

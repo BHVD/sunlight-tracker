@@ -1,6 +1,8 @@
 import React from 'react';
 import {
+  Alert,
   Appearance,
+  Linking,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -33,6 +35,17 @@ export default function SettingsScreen() {
   const card = useThemeColor({}, 'card');
   const primary = useThemeColor({}, 'tint');
   const languageButton = useThemeColor({}, 'languageButton');
+
+  const openExternalLink = async (url: string) => {
+    const canOpen = await Linking.canOpenURL(url);
+
+    if (!canOpen) {
+      Alert.alert('Cannot open link', 'Please try again later.');
+      return;
+    }
+
+    await Linking.openURL(url);
+  };
 
   return (
     <SafeAreaView style={[styles.wrapper, { backgroundColor: background }]}>
@@ -107,10 +120,10 @@ export default function SettingsScreen() {
         {/* Others */}
         <Animatable.View animation="fadeInUp" delay={600} style={[styles.section, { backgroundColor: card }]}>
           <Text style={[styles.sectionTitle, { color: primary }]}>📨 Others</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => openExternalLink('mailto:support@sunlighttracker.app')}>
             <Text style={[styles.link, { color: primary }]}>💬 Send Feedback</Text>
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => openExternalLink('https://example.com/privacy')}>
             <Text style={[styles.link, { color: primary }]}>🔒 Privacy Policy</Text>
           </TouchableOpacity>
         </Animatable.View>
